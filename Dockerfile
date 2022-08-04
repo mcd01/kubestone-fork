@@ -1,8 +1,6 @@
 # Build the manager binary
 FROM golang:1.12.5 as builder
 
-RUN apt update && apt install ca-certificates libgnutls30 -y
-
 WORKDIR /workspace
 
 # cache deps before building and copying source so that we don't need to re-download as much
