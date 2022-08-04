@@ -20,6 +20,7 @@ import (
 	"strconv"
 
 	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/firepear/qsplit"
@@ -59,6 +60,13 @@ func NewClientJob(cr *perfv1alpha1.Qperf) *batchv1.Job {
 	job := k8s.NewPerfJob(objectMeta, "qperf-client", cr.Spec.Image, cr.Spec.ClientConfiguration.PodConfigurationSpec)
 	job.Spec.BackoffLimit = &backoffLimit
 	job.Spec.Template.Spec.Containers[0].Args = qperfCmdLineArgs
+	job.Spec.Template.Spec.Containers[0].Ports = []corev1.ContainerPort{
+		{
+			Name:          "qperf-client",
+			ContainerPort: perfv1alpha1.QperfPort,
+			Protocol:      corev1.ProtocolTCP,
+		},
+	}
 	job.Spec.Template.Spec.HostNetwork = cr.Spec.ClientConfiguration.HostNetwork
 
 	return job
