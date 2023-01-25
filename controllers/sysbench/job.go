@@ -18,6 +18,7 @@ package sysbench
 
 import (
 	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/firepear/qsplit"
@@ -35,6 +36,16 @@ func NewJob(cr *perfv1alpha1.Sysbench) *batchv1.Job {
 	sysbenchCmdLineArgs := []string{}
 	sysbenchCmdLineArgs = append(sysbenchCmdLineArgs, qsplit.ToStrings([]byte(cr.Spec.Options))...)
 	sysbenchCmdLineArgs = append(sysbenchCmdLineArgs, cr.Spec.TestName, cr.Spec.Command)
+
+	volumes := []corev1.Volume{}
+	volumeMounts := []corev1.VolumeMount{}
+
+	volumes = append(volumes, corev1.Volume{
+		Name: "data", VolumeSource: cr.Spec.Volume.VolumeSource,
+	})
+	volumeMounts = append(volumeMounts, corev1.VolumeMount{
+		Name: "data", MountPath: "/data",
+	})
 
 	job := k8s.NewPerfJob(objectMeta, "sysbench", cr.Spec.Image, cr.Spec.PodConfig)
 	job.Spec.Template.Spec.Containers[0].Args = sysbenchCmdLineArgs
