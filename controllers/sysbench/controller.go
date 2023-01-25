@@ -55,6 +55,16 @@ func (r *Reconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
+	if cr.Spec.Volume.PersistentVolumeClaimSpec != nil {
+		pvc := k8s.NewPersistentVolumeClaim(*cr.Spec.Volume.PersistentVolumeClaimSpec,
+			cr.Name, cr.Namespace)
+		if err := r.K8S.CreateWithReference(ctx, pvc, &cr); err != nil {
+			return ctrl.Result{}, err
+		}
+		// Change ClaimName (from GENERATED) to the PVC was created
+		cr.Spec.Volume.VolumeSource.PersistentVolumeClaim.ClaimName = cr.Name
+	}
+	
 	job := NewJob(&cr)
 	if err := r.K8S.CreateWithReference(ctx, job, &cr); err != nil {
 		return ctrl.Result{}, err

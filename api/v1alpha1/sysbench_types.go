@@ -33,6 +33,10 @@ type SysbenchSpec struct {
 	// +optional
 	PodConfig PodConfigurationSpec `json:"podConfig,inline"`
 
+	// Volume contains the configuration for the volume that the fio job should
+	// run on.
+	Volume VolumeSpec `json:"volume"`
+
 	// Options is a list of zero or more command line options starting with '--'.
 	// +optional
 	Options string `json:"options,omitempty"`
