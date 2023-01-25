@@ -48,6 +48,8 @@ func NewJob(cr *perfv1alpha1.Sysbench) *batchv1.Job {
 	})
 
 	job := k8s.NewPerfJob(objectMeta, "sysbench", cr.Spec.Image, cr.Spec.PodConfig)
+	job.Spec.Template.Spec.Volumes = volumes
 	job.Spec.Template.Spec.Containers[0].Args = sysbenchCmdLineArgs
+	job.Spec.Template.Spec.Containers[0].VolumeMounts = volumeMounts
 	return job
 }
