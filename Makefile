@@ -53,7 +53,7 @@ manifests: controller-gen
 # Download gen-crd-api-reference-docs
 gen-crd-api-reference-docs:
 ifeq (, $(shell which gen-crd-api-reference-docs))
-	go get github.com/ahmetb/gen-crd-api-reference-docs@v0.1.5
+	go install github.com/ahmetb/gen-crd-api-reference-docs@v0.1.5
 GEN_CRD_API_REFERENCE_DOCS=$(shell go env GOPATH)/bin/gen-crd-api-reference-docs
 else
 GEN_CRD_API_REFERENCE_DOCS=$(shell which gen-crd-api-reference-docs)
@@ -74,7 +74,7 @@ vet:
 # Download golangci-lint if needed
 golangci-lint:
 ifeq (, $(shell which golangci-lint))
-	go get github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_VERSION}
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_VERSION}
 GOLANGCI_LINT=$(shell go env GOPATH)/bin/golangci-lint
 else
 GOLANGCI_LINT=$(shell which golangci-lint)
@@ -102,7 +102,7 @@ docker-push:
 # download controller-gen if necessary
 controller-gen:
 ifeq (, $(shell which controller-gen))
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.0
+	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.0
 CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
