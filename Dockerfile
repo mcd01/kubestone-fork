@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.12.5 as builder
+FROM golang:1.20.4 as builder
 
 RUN apt update && apt install ca-certificates libgnutls30 -y
 
