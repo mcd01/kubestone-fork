@@ -41,6 +41,7 @@ type Reconciler struct {
 //   - qperf server deployment
 //   - qperf server service
 //   - qperf client pod
+//
 // The creation of qperf client pod is postponed until the server
 // deployment completes. Once the qperf client pod is completed,
 // the server deployment and service objects are removed from k8s.

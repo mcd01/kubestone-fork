@@ -41,6 +41,7 @@ type Reconciler struct {
 //   - iperf3 server deployment
 //   - iperf3 server service
 //   - iperf3 client pod
+//
 // The creation of iperf3 client pod is postponed until the server
 // deployment completes. Once the iperf3 client pod is completed,
 // the server deployment and service objects are removed from k8s.

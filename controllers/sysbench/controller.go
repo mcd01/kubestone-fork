@@ -18,8 +18,8 @@ package sysbench
 
 import (
 	"context"
-
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 
@@ -33,6 +33,8 @@ type Reconciler struct {
 	Log logr.Logger
 }
 
+// +kubebuilder:rbac:groups="",resources=persistentvolumeclaims,verbs=create;delete
+// +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;create;delete
 // +kubebuilder:rbac:groups=perf.kubestone.xridge.io,resources=sysbenches,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=perf.kubestone.xridge.io,resources=sysbenches/status,verbs=get;update;patch
 
@@ -50,6 +52,17 @@ func (r *Reconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, nil
 	}
 
+	// Validate on first entry
+	if !cr.Status.Completed && !cr.Status.Running {
+		if valid, err := IsCrValid(&cr); !valid {
+			_ = r.K8S.RecordEventf(&cr, corev1.EventTypeWarning, k8s.CreateFailed,
+				"CR validation failed: %v", err)
+
+			// Do not requeue invalid CRs
+			return ctrl.Result{}, nil
+		}
+	}
+
 	cr.Status.Running = true
 	if err := r.K8S.Client.Status().Update(ctx, &cr); err != nil {
 		return ctrl.Result{}, err
@@ -64,7 +77,7 @@ func (r *Reconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		// Change ClaimName (from GENERATED) to the PVC was created
 		cr.Spec.Volume.VolumeSource.PersistentVolumeClaim.ClaimName = cr.Name
 	}
-	
+
 	job := NewJob(&cr)
 	if err := r.K8S.CreateWithReference(ctx, job, &cr); err != nil {
 		return ctrl.Result{}, err

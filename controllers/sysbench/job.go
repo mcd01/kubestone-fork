@@ -53,3 +53,9 @@ func NewJob(cr *perfv1alpha1.Sysbench) *batchv1.Job {
 	job.Spec.Template.Spec.Containers[0].VolumeMounts = volumeMounts
 	return job
 }
+
+// IsCrValid validates the given CR and raises error if semantic errors detected
+// For sysbench, the VolumeSpec validity is checked
+func IsCrValid(cr *perfv1alpha1.Sysbench) (valid bool, err error) {
+	return cr.Spec.Volume.Validate()
+}
