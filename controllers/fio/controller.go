@@ -70,11 +70,6 @@ func (r *Reconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
-	configMap := NewConfigMap(&cr)
-	if err := r.K8S.CreateWithReference(ctx, configMap, &cr); err != nil {
-		return ctrl.Result{}, err
-	}
-
 	if cr.Spec.Volume.PersistentVolumeClaimSpec != nil {
 		pvc := k8s.NewPersistentVolumeClaim(*cr.Spec.Volume.PersistentVolumeClaimSpec,
 			cr.Name, cr.Namespace)

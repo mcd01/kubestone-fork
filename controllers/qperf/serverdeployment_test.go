@@ -22,12 +22,10 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
-
 	ksapi "github.com/xridge/kubestone/api/v1alpha1"
 	perfv1alpha1 "github.com/xridge/kubestone/api/v1alpha1"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 var _ = Describe("Server Deployment", func() {
@@ -39,17 +37,9 @@ var _ = Describe("Server Deployment", func() {
 			tolerationSeconds := int64(17)
 			cr = ksapi.Qperf{
 				Spec: ksapi.QperfSpec{
-					Image: ksapi.ImageSpec{
-						Name:       "foo",
-						PullPolicy: "Always",
-						PullSecret: "pull-secret",
-					},
-
-					Options: "--option1 --option2",
-
-					ServerConfiguration: ksapi.QperfConfigurationSpec{
-						HostNetwork: true,
-						PodConfigurationSpec: ksapi.PodConfigurationSpec{
+					HostNetwork: true,
+					ServerConfiguration: ksapi.BenchmarkConfigurationSpec{
+						PodConfig: ksapi.PodConfigurationSpec{
 							PodLabels: map[string]string{"labels": "are", "really": "useful"},
 							PodScheduling: ksapi.PodSchedulingSpec{
 								Affinity: &corev1.Affinity{
@@ -81,38 +71,12 @@ var _ = Describe("Server Deployment", func() {
 								NodeSelector: map[string]string{
 									"atomized": "spiral",
 								},
-								NodeName: "energy-spike-07",
-							},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceCPU:    resource.MustParse("500m"),
-									corev1.ResourceMemory: resource.MustParse("5Gi"),
-								},
-								Limits: corev1.ResourceList{
-									corev1.ResourceCPU:    resource.MustParse("1G"),
-									corev1.ResourceMemory: resource.MustParse("10Gi"),
-								},
 							},
 						},
 					},
 				},
 			}
 			deployment = NewServerDeployment(&cr)
-		})
-
-		Context("with Image details specified", func() {
-			It("should match on Image.Name", func() {
-				Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(
-					Equal(cr.Spec.Image.Name))
-			})
-			It("should match on Image.PullPolicy", func() {
-				Expect(deployment.Spec.Template.Spec.Containers[0].ImagePullPolicy).To(
-					Equal(corev1.PullPolicy(cr.Spec.Image.PullPolicy)))
-			})
-			It("should match on Image.PullSecret", func() {
-				Expect(deployment.Spec.Template.Spec.ImagePullSecrets[0].Name).To(
-					Equal(cr.Spec.Image.PullSecret))
-			})
 		})
 
 		Context("with default settings", func() {
@@ -124,7 +88,7 @@ var _ = Describe("Server Deployment", func() {
 
 		Context("with podLabels specified", func() {
 			It("should contain all podLabels", func() {
-				for k, v := range cr.Spec.ServerConfiguration.PodLabels {
+				for k, v := range cr.Spec.ServerConfiguration.PodConfig.PodLabels {
 					Expect(deployment.Spec.Template.ObjectMeta.Labels).To(
 						HaveKeyWithValue(k, v))
 				}
@@ -134,45 +98,22 @@ var _ = Describe("Server Deployment", func() {
 		Context("with podAffinity specified", func() {
 			It("should match with Affinity", func() {
 				Expect(deployment.Spec.Template.Spec.Affinity).To(
-					Equal(cr.Spec.ServerConfiguration.PodScheduling.Affinity))
+					Equal(cr.Spec.ServerConfiguration.PodConfig.PodScheduling.Affinity))
 			})
 			It("should match with Tolerations", func() {
 				Expect(deployment.Spec.Template.Spec.Tolerations).To(
-					Equal(cr.Spec.ServerConfiguration.PodScheduling.Tolerations))
+					Equal(cr.Spec.ServerConfiguration.PodConfig.PodScheduling.Tolerations))
 			})
 			It("should match with NodeSelector", func() {
 				Expect(deployment.Spec.Template.Spec.NodeSelector).To(
-					Equal(cr.Spec.ServerConfiguration.PodScheduling.NodeSelector))
-			})
-			It("should match with NodeName", func() {
-				Expect(deployment.Spec.Template.Spec.NodeName).To(
-					Equal(cr.Spec.ServerConfiguration.PodScheduling.NodeName))
+					Equal(cr.Spec.ServerConfiguration.PodConfig.PodScheduling.NodeSelector))
 			})
 		})
 
 		Context("with HostNetwork specified", func() {
 			It("should match with HostNetwork", func() {
 				Expect(deployment.Spec.Template.Spec.HostNetwork).To(
-					Equal(cr.Spec.ServerConfiguration.HostNetwork))
-			})
-		})
-
-		Context("with resources specified", func() {
-			It("should request the given CPU", func() {
-				Expect(deployment.Spec.Template.Spec.Containers[0].Resources.Requests.Cpu()).To(
-					BeEquivalentTo(cr.Spec.ServerConfiguration.Resources.Requests.Cpu()))
-			})
-			It("should request the given memory", func() {
-				Expect(deployment.Spec.Template.Spec.Containers[0].Resources.Requests.Memory()).To(
-					BeEquivalentTo(cr.Spec.ServerConfiguration.Resources.Requests.Memory()))
-			})
-			It("should limit to the given CPU", func() {
-				Expect(deployment.Spec.Template.Spec.Containers[0].Resources.Limits.Cpu()).To(
-					BeEquivalentTo(cr.Spec.ServerConfiguration.Resources.Limits.Cpu()))
-			})
-			It("should limit to the given memory", func() {
-				Expect(deployment.Spec.Template.Spec.Containers[0].Resources.Limits.Memory()).To(
-					BeEquivalentTo(cr.Spec.ServerConfiguration.Resources.Limits.Memory()))
+					Equal(cr.Spec.HostNetwork))
 			})
 		})
 	})

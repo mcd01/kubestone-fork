@@ -20,37 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// FioSpec defines the desired state of Fio
-type FioSpec struct {
-	// Image defines the fio docker image used for the benchmark
-	Image ImageSpec `json:"image"`
-
-	// BuiltinJobFiles contains a list of fio job files that are already present
-	// in the docker image
-	// +optional
-	BuiltinJobFiles []string `json:"builtinJobFiles,omitempty"`
-
-	// CustomJobFiles contains a list of custom fio job files
-	// The exact format of fio job files is documented here:
-	// https://fio.readthedocs.io/en/latest/fio_doc.html#job-file-format
-	// The job files defined here will be mounted to the fio benchmark container
-	// +optional
-	CustomJobFiles []string `json:"customJobFiles,omitempty"`
-
-	// CmdLineArgs are appended to the predefined fio parameters
-	// +optional
-	CmdLineArgs string `json:"cmdLineArgs,omitempty"`
-
-	// PodConfig contains the configuration for the benchmark pod, including
-	// pod labels and scheduling policies (affinity, toleration, node selector...)
-	// +optional
-	PodConfig PodConfigurationSpec `json:"podConfig,omitempty"`
-
-	// Volume contains the configuration for the volume that the fio job should
-	// run on.
-	Volume VolumeSpec `json:"volume"`
-}
-
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Running",type="boolean",JSONPath=".status.running"
@@ -61,8 +30,8 @@ type Fio struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   FioSpec         `json:"spec,omitempty"`
-	Status BenchmarkStatus `json:"status,omitempty"`
+	Spec   BenchmarkConfigurationSpec `json:"spec,omitempty"`
+	Status BenchmarkStatus            `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true

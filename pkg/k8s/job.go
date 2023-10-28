@@ -25,7 +25,7 @@ import (
 )
 
 // NewPerfJob creates a new kubernetes job with the given arguments
-func NewPerfJob(objectMeta metav1.ObjectMeta, app string, imageSpec perfv1alpha1.ImageSpec,
+func NewPerfJob(objectMeta metav1.ObjectMeta, app string,
 	podConfig perfv1alpha1.PodConfigurationSpec) *batchv1.Job {
 
 	backoffLimit := int32(0)
@@ -46,22 +46,12 @@ func NewPerfJob(objectMeta metav1.ObjectMeta, app string, imageSpec perfv1alpha1
 					Labels: labels,
 				},
 				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:            app,
-							Image:           imageSpec.Name,
-							ImagePullPolicy: corev1.PullPolicy(imageSpec.PullPolicy),
-							Resources:       podConfig.Resources,
-						},
-					},
-					ImagePullSecrets: []corev1.LocalObjectReference{
-						{Name: imageSpec.PullSecret},
-					},
-					RestartPolicy: corev1.RestartPolicyNever,
-					Affinity:      podConfig.PodScheduling.Affinity,
-					Tolerations:   podConfig.PodScheduling.Tolerations,
-					NodeSelector:  podConfig.PodScheduling.NodeSelector,
-					NodeName:      podConfig.PodScheduling.NodeName,
+					InitContainers: podConfig.InitContainers,
+					Containers:     podConfig.Containers,
+					RestartPolicy:  corev1.RestartPolicyNever,
+					Affinity:       podConfig.PodScheduling.Affinity,
+					Tolerations:    podConfig.PodScheduling.Tolerations,
+					NodeSelector:   podConfig.PodScheduling.NodeSelector,
 				},
 			},
 			BackoffLimit: &backoffLimit,

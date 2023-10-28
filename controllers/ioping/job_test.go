@@ -31,13 +31,8 @@ var _ = Describe("ioping job", func() {
 
 		BeforeEach(func() {
 			cr = perfv1alpha1.Ioping{
-				Spec: perfv1alpha1.IopingSpec{
-					Image: perfv1alpha1.ImageSpec{
-						Name:       "xridge/ioping:test",
-						PullPolicy: "Always",
-						PullSecret: "a-pull-secret",
-					},
-					Args: "-P 42",
+				Spec: perfv1alpha1.BenchmarkConfigurationSpec{
+					CmdLineArgs: "-P 42",
 					Volume: perfv1alpha1.VolumeSpec{
 						VolumeSource: corev1.VolumeSource{
 							EmptyDir: &corev1.EmptyDirVolumeSource{
@@ -64,20 +59,6 @@ var _ = Describe("ioping job", func() {
 			})
 		})
 
-		Context("with image details specified", func() {
-			It("should match on Image.Name", func() {
-				Expect(job.Spec.Template.Spec.Containers[0].Image).To(
-					Equal(cr.Spec.Image.Name))
-			})
-			It("should match on Image.PullPolicy", func() {
-				Expect(job.Spec.Template.Spec.Containers[0].ImagePullPolicy).To(
-					Equal(corev1.PullPolicy(cr.Spec.Image.PullPolicy)))
-			})
-			It("should match on Image.PullSecret", func() {
-				Expect(job.Spec.Template.Spec.ImagePullSecrets[0].Name).To(
-					Equal(cr.Spec.Image.PullSecret))
-			})
-		})
 		Context("with volumeSource defined", func() {
 			It("should match on provided volume", func() {
 				Expect(job.Spec.Template.Spec.Volumes[0].VolumeSource).To(

@@ -35,13 +35,10 @@ var _ = Describe("Client Pod", func() {
 		BeforeEach(func() {
 			cr = ksapi.Iperf3{
 				Spec: ksapi.Iperf3Spec{
-					Image: ksapi.ImageSpec{
-						Name: "foo",
-					},
-					ClientConfiguration: ksapi.Iperf3ConfigurationSpec{
+					ClientConfiguration: ksapi.BenchmarkConfigurationSpec{
 						CmdLineArgs: "--testing --things",
-						HostNetwork: true,
 					},
+					HostNetwork: true,
 				},
 			}
 			job = NewClientJob(&cr)
@@ -76,7 +73,7 @@ var _ = Describe("Client Pod", func() {
 		Context("with HostNetwork specified", func() {
 			It("should match with HostNetwork", func() {
 				Expect(job.Spec.Template.Spec.HostNetwork).To(
-					Equal(cr.Spec.ClientConfiguration.HostNetwork))
+					Equal(cr.Spec.HostNetwork))
 			})
 		})
 

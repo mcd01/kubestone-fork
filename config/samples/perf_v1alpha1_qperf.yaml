@@ -9,10 +9,7 @@ spec:
     pullPolicy: IfNotPresent
     # pullSecret: null
 
-  options: "--verbose --time 10"
-  tests:
-  - tcp_bw
-  - tcp_lat
+  options: "--verbose --time 10 tcp_bw tcp_lat"
 
   serverConfiguration:
     # nodeSelector: null

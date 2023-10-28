@@ -23,39 +23,22 @@ import (
 // QperfPort is the TCP port where the qperf server and client listens
 const QperfPort = 19765
 
-// QperfConfigurationSpec contains configuration parameters
-// with scheduling options for the both the qperf client
-// and server instances.
-type QperfConfigurationSpec struct {
-	PodConfigurationSpec `json:",inline"`
-
-	// HostNetwork requested for the qperf pod, if enabled the
-	// hosts network namespace is used. Default to false.
-	// +optional
-	HostNetwork bool `json:"hostNetwork,omitempty"`
-}
-
 // QperfSpec defines the Qperf Benchmark Stone which
 // consist of server deployment with service definition
 // and client pod.
 type QperfSpec struct {
-	// Image defines the qperf docker image used for the benchmark
-	Image ImageSpec `json:"image"`
-
-	// Options are options for the qperf binary
+	// HostNetwork requested for the qperf pod, if enabled the
+	// hosts network namespace is used. Default to false.
 	// +optional
-	Options string `json:"options,omitempty"`
-
-	// Tests are the tests that we would like to run
-	Tests []string `json:"tests"`
+	HostNetwork bool `json:"hostNetwork,omitempty"`
 
 	// ServerConfiguration contains the configuration of the qperf server
 	// +optional
-	ServerConfiguration QperfConfigurationSpec `json:"serverConfiguration,omitempty"`
+	ServerConfiguration BenchmarkConfigurationSpec `json:"serverConfiguration,omitempty"`
 
 	// ClientConfiguration contains the configuration of the qperf client
 	// +optional
-	ClientConfiguration QperfConfigurationSpec `json:"clientConfiguration,omitempty"`
+	ClientConfiguration BenchmarkConfigurationSpec `json:"clientConfiguration,omitempty"`
 }
 
 // +kubebuilder:object:root=true

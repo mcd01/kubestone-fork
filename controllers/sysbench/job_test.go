@@ -30,13 +30,8 @@ var _ = Describe("sysbench job", func() {
 
 		BeforeEach(func() {
 			cr = perfv1alpha1.Sysbench{
-				Spec: perfv1alpha1.SysbenchSpec{
-					Image: perfv1alpha1.ImageSpec{
-						Name: "xridge/sysbench:test",
-					},
-					Options:  "--threads=2 --time=20",
-					TestName: "cpu",
-					Command:  "run",
+				Spec: perfv1alpha1.BenchmarkConfigurationSpec{
+					CmdLineArgs: "--threads=2 --time=20 cpu run",
 				},
 			}
 			job = NewJob(&cr)

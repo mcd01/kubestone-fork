@@ -35,16 +35,10 @@ var _ = Describe("Client Pod", func() {
 		BeforeEach(func() {
 			cr = ksapi.Qperf{
 				Spec: ksapi.QperfSpec{
-					Image: ksapi.ImageSpec{
-						Name: "foo",
+					ClientConfiguration: ksapi.BenchmarkConfigurationSpec{
+						CmdLineArgs: "tcp_bw tcp_lat",
 					},
-					Tests: []string{
-						"tcp_bw",
-						"tcp_lat",
-					},
-					ClientConfiguration: ksapi.QperfConfigurationSpec{
-						HostNetwork: true,
-					},
+					HostNetwork: true,
 				},
 			}
 			job = NewClientJob(&cr)
@@ -59,27 +53,19 @@ var _ = Describe("Client Pod", func() {
 			})
 		})
 
-		Context("with Tests specified", func() {
-			It("should appear in command line args", func() {
-				length := len(job.Spec.Template.Spec.Containers[0].Args) - len(cr.Spec.Tests)
-				Expect(job.Spec.Template.Spec.Containers[0].Args[length:]).To(
-					Equal(cr.Spec.Tests))
-			})
-		})
-
 		Context("with Options specified", func() {
 			It("should appear in command line args", func() {
-				cr.Spec.Options = "--option1 --option2"
+				cr.Spec.ClientConfiguration.CmdLineArgs = "--option1 --option2"
 				job = NewClientJob(&cr)
 				Expect(strings.Join(job.Spec.Template.Spec.Containers[0].Args, " ")).To(
-					ContainSubstring(cr.Spec.Options))
+					ContainSubstring(cr.Spec.ClientConfiguration.CmdLineArgs))
 			})
 		})
 
 		Context("with HostNetwork specified", func() {
 			It("should match with HostNetwork", func() {
 				Expect(job.Spec.Template.Spec.HostNetwork).To(
-					Equal(cr.Spec.ClientConfiguration.HostNetwork))
+					Equal(cr.Spec.HostNetwork))
 			})
 		})
 

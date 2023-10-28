@@ -19,12 +19,11 @@ package sysbench
 import (
 	"context"
 	"github.com/go-logr/logr"
+	perfv1alpha1 "github.com/xridge/kubestone/api/v1alpha1"
+	"github.com/xridge/kubestone/pkg/k8s"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
-
-	perfv1alpha1 "github.com/xridge/kubestone/api/v1alpha1"
-	"github.com/xridge/kubestone/pkg/k8s"
 )
 
 // SysbenchReconciler reconciles a Sysbench object

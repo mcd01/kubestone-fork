@@ -32,13 +32,13 @@ import (
 
 func clientJobName(cr *perfv1alpha1.Qperf) string {
 	// Should not match with service name as the pod's
-	// hostname is set to it's name. If the two matches
+	// hostname is set to its name. If the two matches
 	// the destination ip will resolve to 127.0.0.1 and
 	// the server will be unreachable.
 	return serverServiceName(cr) + "-client"
 }
 
-// NewClientJob creates an Qperf Client Job (targeting the
+// NewClientJob creates a Qperf Client Job (targeting the
 // Server Deployment via the Server Service) from the provided
 // Qperf Benchmark Definition.
 func NewClientJob(cr *perfv1alpha1.Qperf) *batchv1.Job {
@@ -47,27 +47,32 @@ func NewClientJob(cr *perfv1alpha1.Qperf) *batchv1.Job {
 		Namespace: cr.Namespace,
 	}
 
-	qperfCmdLineArgs := []string{
+	cmdLineArgs := []string{
 		serverServiceName(cr),
 		"--listen_port",
 		strconv.Itoa(perfv1alpha1.QperfPort),
 	}
-	qperfCmdLineArgs = append(qperfCmdLineArgs, qsplit.ToStrings([]byte(cr.Spec.Options))...)
-	qperfCmdLineArgs = append(qperfCmdLineArgs, cr.Spec.Tests...)
+	cmdLineArgs = append(cmdLineArgs, qsplit.ToStrings([]byte(cr.Spec.ClientConfiguration.CmdLineArgs))...)
 
 	backoffLimit := int32(6)
 
-	job := k8s.NewPerfJob(objectMeta, "qperf-client", cr.Spec.Image, cr.Spec.ClientConfiguration.PodConfigurationSpec)
+	job := k8s.NewPerfJob(objectMeta, "qperf-client", cr.Spec.ClientConfiguration.PodConfig)
 	job.Spec.BackoffLimit = &backoffLimit
-	job.Spec.Template.Spec.Containers[0].Args = qperfCmdLineArgs
-	job.Spec.Template.Spec.Containers[0].Ports = []corev1.ContainerPort{
-		{
-			Name:          "qperf-client",
-			ContainerPort: perfv1alpha1.QperfPort,
-			Protocol:      corev1.ProtocolTCP,
-		},
+	for i := 0; i < len(job.Spec.Template.Spec.Containers); i++ {
+		if job.Spec.Template.Spec.Containers[i].Name == "main" {
+			if job.Spec.Template.Spec.Containers[i].Args == nil {
+				job.Spec.Template.Spec.Containers[i].Args = cmdLineArgs
+			}
+			job.Spec.Template.Spec.Containers[i].Ports = []corev1.ContainerPort{
+				{
+					Name:          "qperf-client",
+					ContainerPort: perfv1alpha1.QperfPort,
+					Protocol:      corev1.ProtocolTCP,
+				},
+			}
+		}
 	}
-	job.Spec.Template.Spec.HostNetwork = cr.Spec.ClientConfiguration.HostNetwork
+	job.Spec.Template.Spec.HostNetwork = cr.Spec.HostNetwork
 
 	return job
 }

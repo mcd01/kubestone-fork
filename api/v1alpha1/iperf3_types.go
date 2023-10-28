@@ -20,41 +20,27 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Iperf3ConfigurationSpec contains configuration parameters
-// with scheduling options for the both the iperf3 client
-// and server instances.
-type Iperf3ConfigurationSpec struct {
-	PodConfigurationSpec `json:",inline"`
-
-	// CmdLineArgs are appended to the predefined iperf3 parameters
-	// +optional
-	CmdLineArgs string `json:"cmdLineArgs,omitempty"`
-
-	// HostNetwork requested for the iperf3 pod, if enabled the
-	// hosts network namespace is used. Default to false.
-	// +optional
-	HostNetwork bool `json:"hostNetwork,omitempty"`
-}
-
 // Iperf3Spec defines the Iperf3 Benchmark Stone which
 // consist of server deployment with service definition
 // and client pod.
 type Iperf3Spec struct {
-	// Image defines the iperf3 docker image used for the benchmark
-	Image ImageSpec `json:"image"`
-
 	// ServerConfiguration contains the configuration of the iperf3 server
 	// +optional
-	ServerConfiguration Iperf3ConfigurationSpec `json:"serverConfiguration,omitempty"`
+	ServerConfiguration BenchmarkConfigurationSpec `json:"serverConfiguration,omitempty"`
 
 	// ClientConfiguration contains the configuration of the iperf3 client
 	// +optional
-	ClientConfiguration Iperf3ConfigurationSpec `json:"clientConfiguration,omitempty"`
+	ClientConfiguration BenchmarkConfigurationSpec `json:"clientConfiguration,omitempty"`
 
 	// UDP to use rather than TCP.
 	// If enabled the '--udp' parameter is added to iperf command line args
 	// +optional
 	UDP bool `json:"udp,omitempty"`
+
+	// HostNetwork requested for the iperf3 pod, if enabled the
+	// hosts network namespace is used. Default to false.
+	// +optional
+	HostNetwork bool `json:"hostNetwork,omitempty"`
 }
 
 // +kubebuilder:object:root=true

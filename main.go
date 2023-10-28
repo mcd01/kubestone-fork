@@ -29,11 +29,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	perfv1alpha1 "github.com/xridge/kubestone/api/v1alpha1"
-	"github.com/xridge/kubestone/controllers/drill"
 	"github.com/xridge/kubestone/controllers/fio"
 	"github.com/xridge/kubestone/controllers/ioping"
 	"github.com/xridge/kubestone/controllers/iperf3"
-	"github.com/xridge/kubestone/controllers/pgbench"
 	"github.com/xridge/kubestone/controllers/qperf"
 	"github.com/xridge/kubestone/controllers/sysbench"
 	"github.com/xridge/kubestone/pkg/k8s"
@@ -103,20 +101,6 @@ func main() {
 		Log: ctrl.Log.WithName("controllers").WithName("Sysbench"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Sysbench")
-		os.Exit(1)
-	}
-	if err = (&drill.Reconciler{
-		K8S: k8sAccess,
-		Log: ctrl.Log.WithName("controllers").WithName("Drill"),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Drill")
-		os.Exit(1)
-	}
-	if err = (&pgbench.Reconciler{
-		K8S: k8sAccess,
-		Log: ctrl.Log.WithName("controllers").WithName("Pgbench"),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Pgbench")
 		os.Exit(1)
 	}
 	if err = (&ioping.Reconciler{

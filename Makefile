@@ -42,26 +42,9 @@ install: manifests
 deploy: manifests
 	kustomize build config/default | kubectl apply -f -
 
-# Deployment used for end-to-end test
-deploy-e2e: manifests
-	kustomize build config/e2e | kubectl apply -f -
-
 # Generate manifests: CRD, RBAC, etc.
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
-
-# Download gen-crd-api-reference-docs
-gen-crd-api-reference-docs:
-ifeq (, $(shell which gen-crd-api-reference-docs))
-	go install github.com/ahmetb/gen-crd-api-reference-docs@v0.1.5
-GEN_CRD_API_REFERENCE_DOCS=$(shell go env GOPATH)/bin/gen-crd-api-reference-docs
-else
-GEN_CRD_API_REFERENCE_DOCS=$(shell which gen-crd-api-reference-docs)
-endif
-
-# Generate apidocs
-apidocs: gen-crd-api-reference-docs
-	$(GEN_CRD_API_REFERENCE_DOCS) -config docs/apidocs/config.json -api-dir github.com/xridge/kubestone/api/$(API_VERSION)/ -out-file docs/static/apidocs.html -template-dir docs/apidocs/template/
 
 # Run go fmt against code
 fmt:

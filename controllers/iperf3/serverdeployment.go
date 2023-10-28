@@ -49,22 +49,22 @@ func NewServerDeployment(cr *perfv1alpha1.Iperf3) *appsv1.Deployment {
 		"kubestone.xridge.io/cr-name": cr.Name,
 	}
 	// Let's be nice and don't mutate CRs label field
-	for k, v := range cr.Spec.ServerConfiguration.PodLabels {
+	for k, v := range cr.Spec.ServerConfiguration.PodConfig.PodLabels {
 		labels[k] = v
 	}
 
-	iperfCmdLineArgs := []string{
+	cmdLineArgs := []string{
 		"--server",
-		"--port", strconv.Itoa(Iperf3ServerPort)}
+		"--port",
+		strconv.Itoa(Iperf3ServerPort)}
 
-	protocol := corev1.Protocol(corev1.ProtocolTCP)
+	protocol := corev1.ProtocolTCP
 	if cr.Spec.UDP {
-		iperfCmdLineArgs = append(iperfCmdLineArgs, "--udp")
-		protocol = corev1.Protocol(corev1.ProtocolUDP)
+		cmdLineArgs = append(cmdLineArgs, "--udp")
+		protocol = corev1.ProtocolUDP
 	}
 
-	iperfCmdLineArgs = append(iperfCmdLineArgs,
-		qsplit.ToStrings([]byte(cr.Spec.ServerConfiguration.CmdLineArgs))...)
+	cmdLineArgs = append(cmdLineArgs, qsplit.ToStrings([]byte(cr.Spec.ServerConfiguration.CmdLineArgs))...)
 
 	// Iperf3 Server does not like if probe connections are made to the port,
 	// therefore we are checking if the port if open or not via shell script
@@ -86,51 +86,44 @@ func NewServerDeployment(cr *perfv1alpha1.Iperf3) *appsv1.Deployment {
 					Labels: labels,
 				},
 				Spec: corev1.PodSpec{
-					ImagePullSecrets: []corev1.LocalObjectReference{
-						{
-							Name: cr.Spec.Image.PullSecret,
-						},
-					},
-					Containers: []corev1.Container{
-						{
-							Name:            "server",
-							Image:           cr.Spec.Image.Name,
-							ImagePullPolicy: corev1.PullPolicy(cr.Spec.Image.PullPolicy),
-							Command:         []string{"iperf3"},
-							Args:            iperfCmdLineArgs,
-							Ports: []corev1.ContainerPort{
-								{
-									Name:          "iperf-server",
-									ContainerPort: Iperf3ServerPort,
-									Protocol:      protocol,
-								},
-							},
-							ReadinessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									Exec: &corev1.ExecAction{
-										Command: []string{
-											"awk",
-											readinessAwkCmd,
-											"/proc/1/net/tcp",
-											"/proc/1/net/tcp6",
-										},
-									},
-								},
-								InitialDelaySeconds: 5,
-								TimeoutSeconds:      2,
-								PeriodSeconds:       2,
-							},
-							Resources: cr.Spec.ServerConfiguration.Resources,
-						},
-					},
-					Affinity:     cr.Spec.ServerConfiguration.PodScheduling.Affinity,
-					Tolerations:  cr.Spec.ServerConfiguration.PodScheduling.Tolerations,
-					NodeSelector: cr.Spec.ServerConfiguration.PodScheduling.NodeSelector,
-					NodeName:     cr.Spec.ServerConfiguration.PodScheduling.NodeName,
-					HostNetwork:  cr.Spec.ServerConfiguration.HostNetwork,
+					InitContainers: cr.Spec.ServerConfiguration.PodConfig.InitContainers,
+					Containers:     cr.Spec.ServerConfiguration.PodConfig.Containers,
+					Affinity:       cr.Spec.ServerConfiguration.PodConfig.PodScheduling.Affinity,
+					Tolerations:    cr.Spec.ServerConfiguration.PodConfig.PodScheduling.Tolerations,
+					NodeSelector:   cr.Spec.ServerConfiguration.PodConfig.PodScheduling.NodeSelector,
+					HostNetwork:    cr.Spec.HostNetwork,
 				},
 			},
 		},
+	}
+
+	for i := 0; i < len(deployment.Spec.Template.Spec.Containers); i++ {
+		if deployment.Spec.Template.Spec.Containers[i].Name == "main" {
+			deployment.Spec.Template.Spec.Containers[i].Command = []string{"iperf3"}
+			deployment.Spec.Template.Spec.Containers[i].Args = cmdLineArgs
+			deployment.Spec.Template.Spec.Containers[i].Ports = []corev1.ContainerPort{
+				{
+					Name:          "iperf-server",
+					ContainerPort: Iperf3ServerPort,
+					Protocol:      protocol,
+				},
+			}
+			deployment.Spec.Template.Spec.Containers[i].ReadinessProbe = &corev1.Probe{
+				Handler: corev1.Handler{
+					Exec: &corev1.ExecAction{
+						Command: []string{
+							"awk",
+							readinessAwkCmd,
+							"/proc/1/net/tcp",
+							"/proc/1/net/tcp6",
+						},
+					},
+				},
+				InitialDelaySeconds: 5,
+				TimeoutSeconds:      2,
+				PeriodSeconds:       2,
+			}
+		}
 	}
 
 	return &deployment

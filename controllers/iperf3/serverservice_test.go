@@ -30,11 +30,7 @@ var _ = Describe("Server Service", func() {
 
 		BeforeEach(func() {
 			cr = ksapi.Iperf3{
-				Spec: ksapi.Iperf3Spec{
-					Image: ksapi.ImageSpec{
-						Name: "foo",
-					},
-				},
+				Spec: ksapi.Iperf3Spec{},
 			}
 			service = NewServerService(&cr)
 		})

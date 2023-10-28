@@ -48,23 +48,27 @@ func NewClientJob(cr *perfv1alpha1.Iperf3) *batchv1.Job {
 
 	serverAddress := serverServiceName(cr)
 
-	iperfCmdLineArgs := []string{
+	cmdLineArgs := []string{
 		"--client", serverAddress,
 		"--port", strconv.Itoa(Iperf3ServerPort),
 	}
 
 	if cr.Spec.UDP {
-		iperfCmdLineArgs = append(iperfCmdLineArgs, "--udp")
+		cmdLineArgs = append(cmdLineArgs, "--udp")
 	}
 
-	iperfCmdLineArgs = append(iperfCmdLineArgs,
-		qsplit.ToStrings([]byte(cr.Spec.ClientConfiguration.CmdLineArgs))...)
+	cmdLineArgs = append(cmdLineArgs, qsplit.ToStrings([]byte(cr.Spec.ClientConfiguration.CmdLineArgs))...)
 
-	job := k8s.NewPerfJob(objectMeta, "iperf3-client", cr.Spec.Image,
-		cr.Spec.ClientConfiguration.PodConfigurationSpec)
+	job := k8s.NewPerfJob(objectMeta, "iperf3-client", cr.Spec.ClientConfiguration.PodConfig)
 	backoffLimit := int32(6)
 	job.Spec.BackoffLimit = &backoffLimit
-	job.Spec.Template.Spec.Containers[0].Args = iperfCmdLineArgs
-	job.Spec.Template.Spec.HostNetwork = cr.Spec.ClientConfiguration.HostNetwork
+	for i := 0; i < len(job.Spec.Template.Spec.Containers); i++ {
+		if job.Spec.Template.Spec.Containers[i].Name == "main" {
+			if job.Spec.Template.Spec.Containers[i].Args == nil {
+				job.Spec.Template.Spec.Containers[i].Args = cmdLineArgs
+			}
+		}
+	}
+	job.Spec.Template.Spec.HostNetwork = cr.Spec.HostNetwork
 	return job
 }

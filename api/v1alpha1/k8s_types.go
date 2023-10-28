@@ -58,12 +58,6 @@ type PodSchedulingSpec struct {
 	// node selector terms.
 	// +optional
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
-
-	// NodeName is a request to schedule this pod onto a specific node. If it is non-empty,
-	// the scheduler simply schedules this pod onto that node, assuming that it fits resource
-	// requirements.
-	// +optional
-	NodeName string `json:"nodeName,omitempty"`
 }
 
 // VolumeSpec contains the Volume Definition used for the benchmarks.
@@ -115,8 +109,22 @@ type PodConfigurationSpec struct {
 	// +optional
 	PodScheduling PodSchedulingSpec `json:"podScheduling,omitempty"`
 
-	// Resources required by the benchmark pod container
-	// More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+	InitContainers []corev1.Container `json:"initContainers,omitempty"`
+
+	Containers []corev1.Container `json:"containers"`
+}
+
+type BenchmarkConfigurationSpec struct {
+	// PodConfig contains the configuration for the benchmark pod, including
+	// pod labels and scheduling policies (affinity, toleration, node selector...)
 	// +optional
-	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+	PodConfig PodConfigurationSpec `json:"podConfig"`
+
+	// CmdLineArgs are appended to the predefined fio parameters
+	// +optional
+	CmdLineArgs string `json:"cmdLineArgs,omitempty"`
+
+	// Volume contains the configuration for the volume that the fio job should
+	// run on.
+	Volume VolumeSpec `json:"volume,omitempty"`
 }

@@ -31,6 +31,7 @@ rules:
   - persistentvolumeclaims
   verbs:
   - create
+  - delete
 - apiGroups:
   - ""
   resources:
@@ -69,26 +70,6 @@ rules:
   - delete
   - get
   - list
-- apiGroups:
-  - perf.kubestone.xridge.io
-  resources:
-  - drills
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - perf.kubestone.xridge.io
-  resources:
-  - drills/status
-  verbs:
-  - get
-  - patch
-  - update
 - apiGroups:
   - perf.kubestone.xridge.io
   resources:
@@ -145,26 +126,6 @@ rules:
   - perf.kubestone.xridge.io
   resources:
   - iperf3s/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - perf.kubestone.xridge.io
-  resources:
-  - pgbenches
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - perf.kubestone.xridge.io
-  resources:
-  - pgbenches/status
   verbs:
   - get
   - patch

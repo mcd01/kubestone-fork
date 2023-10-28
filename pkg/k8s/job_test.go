@@ -22,7 +22,6 @@ import (
 
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	perfv1alpha1 "github.com/xridge/kubestone/api/v1alpha1"
@@ -78,21 +77,10 @@ var _ = Describe("perf job", func() {
 				NodeSelector: map[string]string{
 					"atomized": "spiral",
 				},
-				NodeName: "energy-spike-07",
-			},
-			Resources: corev1.ResourceRequirements{
-				Requests: corev1.ResourceList{
-					corev1.ResourceCPU:    resource.MustParse("500m"),
-					corev1.ResourceMemory: resource.MustParse("5Gi"),
-				},
-				Limits: corev1.ResourceList{
-					corev1.ResourceCPU:    resource.MustParse("1G"),
-					corev1.ResourceMemory: resource.MustParse("10Gi"),
-				},
 			},
 		}
 
-		job = NewPerfJob(objectMeta, "test-app", imageSpec, podConfig)
+		job = NewPerfJob(objectMeta, "test-app", podConfig)
 	})
 
 	Describe("NewPerfJob", func() {
@@ -141,29 +129,6 @@ var _ = Describe("perf job", func() {
 		It("should match with NodeSelector", func() {
 			Expect(job.Spec.Template.Spec.NodeSelector).To(
 				Equal(podConfig.PodScheduling.NodeSelector))
-		})
-		It("should match with NodeName", func() {
-			Expect(job.Spec.Template.Spec.NodeName).To(
-				Equal(podConfig.PodScheduling.NodeName))
-		})
-
-		Context("Resources", func() {
-			It("should request the given CPU", func() {
-				Expect(job.Spec.Template.Spec.Containers[0].Resources.Requests.Cpu()).To(
-					BeEquivalentTo(podConfig.Resources.Requests.Cpu()))
-			})
-			It("should request the given memory", func() {
-				Expect(job.Spec.Template.Spec.Containers[0].Resources.Requests.Memory()).To(
-					BeEquivalentTo(podConfig.Resources.Requests.Memory()))
-			})
-			It("should limit to the given CPU", func() {
-				Expect(job.Spec.Template.Spec.Containers[0].Resources.Limits.Cpu()).To(
-					BeEquivalentTo(podConfig.Resources.Limits.Cpu()))
-			})
-			It("should limit to the given memory", func() {
-				Expect(job.Spec.Template.Spec.Containers[0].Resources.Limits.Memory()).To(
-					BeEquivalentTo(podConfig.Resources.Limits.Memory()))
-			})
 		})
 	})
 })

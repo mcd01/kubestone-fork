@@ -31,12 +31,7 @@ var _ = Describe("fio job", func() {
 
 		BeforeEach(func() {
 			cr = perfv1alpha1.Fio{
-				Spec: perfv1alpha1.FioSpec{
-					Image: perfv1alpha1.ImageSpec{
-						Name:       "xridge/fio:test",
-						PullPolicy: "Always",
-						PullSecret: "a-pull-secret",
-					},
+				Spec: perfv1alpha1.BenchmarkConfigurationSpec{
 					CmdLineArgs: "--name=randwrite --iodepth=1 --rw=randwrite --bs=4m --direct=1 --size=256M --numjobs=1",
 				},
 			}
@@ -63,12 +58,7 @@ var _ = Describe("fio job", func() {
 		BeforeEach(func() {
 			pvcName = "test-pvc"
 			cr = perfv1alpha1.Fio{
-				Spec: perfv1alpha1.FioSpec{
-					Image: perfv1alpha1.ImageSpec{
-						Name:       "xridge/fio:test",
-						PullPolicy: "IfNotPresent",
-					},
-					BuiltinJobFiles: []string{"/jobs/rand-read.fio"},
+				Spec: perfv1alpha1.BenchmarkConfigurationSpec{
 					Volume: perfv1alpha1.VolumeSpec{
 						VolumeSource: corev1.VolumeSource{
 							PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
@@ -79,24 +69,6 @@ var _ = Describe("fio job", func() {
 				},
 			}
 			job = NewJob(&cr)
-		})
-
-		Context("with Image details specified", func() {
-			It("should match on Image.Name", func() {
-				Expect(job.Spec.Template.Spec.Containers[0].Image).To(
-					Equal(cr.Spec.Image.Name))
-			})
-			It("should match on Image.PullPolicy", func() {
-				Expect(job.Spec.Template.Spec.Containers[0].ImagePullPolicy).To(
-					Equal(corev1.PullPolicy(cr.Spec.Image.PullPolicy)))
-			})
-		})
-
-		Context("with builtin job files specified", func() {
-			It("should have those files", func() {
-				Expect(job.Spec.Template.Spec.Containers[0].Args).To(
-					ContainElement("/jobs/rand-read.fio"))
-			})
 		})
 
 		Context("with pvc name specified", func() {
@@ -113,11 +85,7 @@ var _ = Describe("fio job", func() {
 
 		BeforeEach(func() {
 			cr = perfv1alpha1.Fio{
-				Spec: perfv1alpha1.FioSpec{
-					Image: perfv1alpha1.ImageSpec{
-						Name:       "xridge/fio:test",
-						PullPolicy: "IfNotPresent",
-					},
+				Spec: perfv1alpha1.BenchmarkConfigurationSpec{
 					Volume: perfv1alpha1.VolumeSpec{
 						VolumeSource: corev1.VolumeSource{
 							EmptyDir: &corev1.EmptyDirVolumeSource{},

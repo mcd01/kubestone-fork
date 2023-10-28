@@ -17,11 +17,11 @@ limitations under the License.
 package ioping
 
 import (
+	"github.com/firepear/qsplit"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/firepear/qsplit"
 	perfv1alpha1 "github.com/xridge/kubestone/api/v1alpha1"
 	"github.com/xridge/kubestone/pkg/k8s"
 )
@@ -34,19 +34,29 @@ func NewJob(cr *perfv1alpha1.Ioping) *batchv1.Job {
 	}
 
 	volumes := []corev1.Volume{
-		corev1.Volume{Name: "data", VolumeSource: cr.Spec.Volume.VolumeSource},
+		{Name: "data", VolumeSource: cr.Spec.Volume.VolumeSource},
 	}
 	volumeMounts := []corev1.VolumeMount{
-		corev1.VolumeMount{Name: "data", MountPath: "/data"},
+		{Name: "data", MountPath: "/data"},
 	}
 
-	args := qsplit.ToStrings([]byte(cr.Spec.Args))
-	args = append(args, "/data") // destination parameter of ioping
+	cmdLineArgs := qsplit.ToStrings([]byte(cr.Spec.CmdLineArgs))
+	cmdLineArgs = append(cmdLineArgs, "/data") // destination parameter of ioping
 
-	job := k8s.NewPerfJob(objectMeta, "ioping", cr.Spec.Image, cr.Spec.PodConfig)
+	job := k8s.NewPerfJob(objectMeta, "ioping", cr.Spec.PodConfig)
 	job.Spec.Template.Spec.Volumes = volumes
-	job.Spec.Template.Spec.Containers[0].Args = args
-	job.Spec.Template.Spec.Containers[0].VolumeMounts = volumeMounts
+	for i := 0; i < len(job.Spec.Template.Spec.InitContainers); i++ {
+		job.Spec.Template.Spec.InitContainers[i].VolumeMounts = volumeMounts
+		if job.Spec.Template.Spec.InitContainers[i].Args == nil {
+			job.Spec.Template.Spec.InitContainers[i].Args = cmdLineArgs
+		}
+	}
+	for i := 0; i < len(job.Spec.Template.Spec.Containers); i++ {
+		job.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+		if job.Spec.Template.Spec.Containers[i].Args == nil {
+			job.Spec.Template.Spec.Containers[i].Args = cmdLineArgs
+		}
+	}
 	return job
 }
 

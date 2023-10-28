@@ -17,11 +17,11 @@ limitations under the License.
 package sysbench
 
 import (
+	"github.com/firepear/qsplit"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/firepear/qsplit"
 	perfv1alpha1 "github.com/xridge/kubestone/api/v1alpha1"
 	"github.com/xridge/kubestone/pkg/k8s"
 )
@@ -33,24 +33,30 @@ func NewJob(cr *perfv1alpha1.Sysbench) *batchv1.Job {
 		Namespace: cr.Namespace,
 	}
 
-	sysbenchCmdLineArgs := []string{}
-	sysbenchCmdLineArgs = append(sysbenchCmdLineArgs, qsplit.ToStrings([]byte(cr.Spec.Options))...)
-	sysbenchCmdLineArgs = append(sysbenchCmdLineArgs, cr.Spec.TestName, cr.Spec.Command)
+	volumes := []corev1.Volume{
+		{Name: "data", VolumeSource: cr.Spec.Volume.VolumeSource},
+	}
+	volumeMounts := []corev1.VolumeMount{
+		{Name: "data", MountPath: "/data"},
+	}
 
-	volumes := []corev1.Volume{}
-	volumeMounts := []corev1.VolumeMount{}
+	var cmdLineArgs []string
+	cmdLineArgs = append(cmdLineArgs, qsplit.ToStrings([]byte(cr.Spec.CmdLineArgs))...)
 
-	volumes = append(volumes, corev1.Volume{
-		Name: "data", VolumeSource: cr.Spec.Volume.VolumeSource,
-	})
-	volumeMounts = append(volumeMounts, corev1.VolumeMount{
-		Name: "data", MountPath: "/data",
-	})
-
-	job := k8s.NewPerfJob(objectMeta, "sysbench", cr.Spec.Image, cr.Spec.PodConfig)
+	job := k8s.NewPerfJob(objectMeta, "sysbench", cr.Spec.PodConfig)
 	job.Spec.Template.Spec.Volumes = volumes
-	job.Spec.Template.Spec.Containers[0].Args = sysbenchCmdLineArgs
-	job.Spec.Template.Spec.Containers[0].VolumeMounts = volumeMounts
+	for i := 0; i < len(job.Spec.Template.Spec.InitContainers); i++ {
+		job.Spec.Template.Spec.InitContainers[i].VolumeMounts = volumeMounts
+		if job.Spec.Template.Spec.InitContainers[i].Args == nil {
+			job.Spec.Template.Spec.InitContainers[i].Args = cmdLineArgs
+		}
+	}
+	for i := 0; i < len(job.Spec.Template.Spec.Containers); i++ {
+		job.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+		if job.Spec.Template.Spec.Containers[i].Args == nil {
+			job.Spec.Template.Spec.Containers[i].Args = cmdLineArgs
+		}
+	}
 	return job
 }
 

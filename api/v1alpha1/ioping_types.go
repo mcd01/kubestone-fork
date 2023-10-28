@@ -20,25 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// IopingSpec defines the ioping benchmark run
-type IopingSpec struct {
-	// Image defines the ioping docker image used for the benchmark
-	Image ImageSpec `json:"image"`
-
-	// Args are appended to the predefined ioping parameters
-	// +optional
-	Args string `json:"args,omitempty"`
-
-	// PodConfig contains the configuration for the benchmark pod, including
-	// pod labels and scheduling policies (affinity, toleration, node selector...)
-	// +optional
-	PodConfig PodConfigurationSpec `json:"podConfig,omitempty"`
-
-	// Volume contains the configuration for the volume that the ioping job should
-	// run on.
-	Volume VolumeSpec `json:"volume"`
-}
-
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Running",type="boolean",JSONPath=".status.running"
@@ -49,8 +30,8 @@ type Ioping struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   IopingSpec      `json:"spec,omitempty"`
-	Status BenchmarkStatus `json:"status,omitempty"`
+	Spec   BenchmarkConfigurationSpec `json:"spec,omitempty"`
+	Status BenchmarkStatus            `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
