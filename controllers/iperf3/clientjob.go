@@ -60,8 +60,6 @@ func NewClientJob(cr *perfv1alpha1.Iperf3) *batchv1.Job {
 	cmdLineArgs = append(cmdLineArgs, qsplit.ToStrings([]byte(cr.Spec.ClientConfiguration.CmdLineArgs))...)
 
 	job := k8s.NewPerfJob(objectMeta, "iperf3-client", cr.Spec.ClientConfiguration.PodConfig)
-	backoffLimit := int32(6)
-	job.Spec.BackoffLimit = &backoffLimit
 	for i := 0; i < len(job.Spec.Template.Spec.Containers); i++ {
 		if job.Spec.Template.Spec.Containers[i].Name == "main" {
 			if job.Spec.Template.Spec.Containers[i].Args == nil {

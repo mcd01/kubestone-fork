@@ -81,13 +81,5 @@ var _ = Describe("Client Pod", func() {
 					Equal(service.ObjectMeta.Name))
 			})
 		})
-
-		Context("by default", func() {
-			defaultBackoffLimit := int32(6)
-			It("should retry 6 times", func() {
-				Expect(job.Spec.BackoffLimit).To(
-					Equal(&defaultBackoffLimit))
-			})
-		})
 	})
 })
